@@ -47,8 +47,8 @@ class KEY implements RdataInterface
     protected $algorithm;
 
     /**
-     * The Public Key field is a Base64 encoding of the Public Key.
-     * Whitespace is allowed within the Base64 text.
+     * The Public Key stored in raw binary.
+     *
      * {@link https://tools.ietf.org/html/rfc4034#section-2.1.4}.
      *
      * @var string
@@ -86,11 +86,7 @@ class KEY implements RdataInterface
      */
     public function setPublicKey(string $publicKey): void
     {
-        if (false === $key = base64_decode($publicKey, true)) {
-            throw new \InvalidArgumentException('The public key must be a valid base64 encoded string.');
-        }
-
-        $this->publicKey = $key;
+        $this->publicKey = $publicKey;
     }
 
     /**
@@ -122,7 +118,7 @@ class KEY implements RdataInterface
      */
     public function getPublicKey(): string
     {
-        return base64_encode($this->publicKey);
+        return $this->publicKey;
     }
 
     /**
@@ -151,7 +147,7 @@ class KEY implements RdataInterface
         $key->setFlags((int) array_shift($rdata));
         $key->setProtocol((int) array_shift($rdata));
         $key->setAlgorithm((int) array_shift($rdata));
-        $key->setPublicKey(implode('', $rdata));
+        $key->setPublicKey(base64_decode(implode('', $rdata)));
 
         return $key;
     }
@@ -168,7 +164,7 @@ class KEY implements RdataInterface
         $key->setFlags((int) $integers['flags']);
         $key->setProtocol((int) $integers['protocol']);
         $key->setAlgorithm((int) $integers['algorithm']);
-        $key->publicKey = substr($rdata, $offset, $rdLength - 4);
+        $key->setPublicKey(substr($rdata, $offset, $rdLength - 4));
         $offset += $rdLength - 4;
 
         return $key;
